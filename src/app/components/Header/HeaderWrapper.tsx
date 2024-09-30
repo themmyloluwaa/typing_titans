@@ -6,7 +6,7 @@ const HeaderWrapper = async () => {
     const { data: { session } } = await supabase.auth.getSession()
     const isSignedIn = !!session
 
-    return <Header isSignedIn={isSignedIn} />
+    return <Header  />
 }
 
 export default HeaderWrapper;

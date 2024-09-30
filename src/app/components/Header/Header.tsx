@@ -1,12 +1,32 @@
 'use client'
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { createClient } from "@/utils/supabase/client";
 import SignInButton from "../SignInButton";
 import Link from 'next/link';
 import LogoutButton from "../LogoutButton";
 
-const Header = ({ isSignedIn }: { isSignedIn: boolean }) => {
+const Header = () => {
+    const [isSignedIn, setIsSignedIn] = useState(false);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const supabase = createClient();
+
+    useEffect(() => {
+        const checkSession = async () => {
+            const { data: { session } } = await supabase.auth.getSession();
+            setIsSignedIn(!!session);
+        };
+
+        const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+            setIsSignedIn(!!session);
+        });
+
+        checkSession();
+
+        return () => {
+            authListener.subscription.unsubscribe();
+        };
+    }, [supabase]);
 
     return (
         <header className="p-4 w-full border-b border-gray-200">
