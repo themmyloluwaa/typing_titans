@@ -7,9 +7,10 @@ interface ResultsDisplayProps {
         accuracy: number;
         time: number;
     };
+    onTryAgain: () => void;
 }
 
-const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ results }) => {
+const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ results, onTryAgain }) => {
     return (
         <div className="max-w-md mx-auto bg-white shadow-lg rounded-lg overflow-hidden">
             <div className="px-6 py-4">
@@ -20,9 +21,9 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ results }) => {
                     <p className="text-lg"><strong>Time:</strong> {results.time.toFixed(2)} seconds</p>
                 </div>
                 <div className="flex justify-center space-x-4">
-                    <Link href="/practice" className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">
+                    <button onClick={onTryAgain} className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">
                         Try Again
-                    </Link>
+                    </button>
                     <Link href="/profile" className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded">
                         View Profile
                     </Link>

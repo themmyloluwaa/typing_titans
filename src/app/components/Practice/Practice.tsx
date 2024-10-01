@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { createClient } from "@/utils/supabase/client";
 import TypingArea from "@/app/components/TypingArea";
 import ResultsDisplay from "@/app/components/ResultsDisplay";
@@ -17,6 +17,31 @@ export default function PracticePage() {
     const [streak, setStreak] = useState(0);
     const [progress, setProgress] = useState(0);
     const supabase = createClient();
+    const audioRef = useRef<HTMLAudioElement | null>(null);
+
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            audioRef.current = new Audio('/audio/detective.mp3');
+            audioRef.current.loop = true; // Make the audio loop
+            audioRef.current.volume = 0.5; // Set volume to 50%
+            const playAudio = () => {
+                audioRef.current?.play().catch(error => {
+                    console.error("Error playing audio:", error);
+                    // Retry playing after a short delay
+                    setTimeout(playAudio, 1000);
+                });
+            };
+            playAudio();
+        }
+
+        // Cleanup function to stop audio when component unmounts
+        return () => {
+            if (audioRef.current) {
+                audioRef.current.pause();
+                audioRef.current.currentTime = 0;
+            }
+        };
+    }, []);
 
     useEffect(() => {
         const checkUser = () => {
@@ -43,7 +68,9 @@ export default function PracticePage() {
             "Where there's a will, there's a way."
         ];
         const text = texts[Math.min(level - 1, texts.length - 1)];
-        setPracticeText(text);
+        // Increase difficulty by adding more words based on the level
+        const repeatedText = (text + ' ').repeat(level).trim();
+        setPracticeText(repeatedText);
         setProgress(0);
     };
 
@@ -56,12 +83,9 @@ export default function PracticePage() {
         const newScore = score + (typingResults.accuracy * typingResults.wpm);
         setScore(Math.round(newScore));
 
-        if (typingResults.accuracy > 95) {
-            const newStreak = streak + 1;
-            setStreak(newStreak);
-            if (newStreak % 3 === 0) {
-                setLevel(prevLevel => prevLevel + 1);
-            }
+        if (typingResults.accuracy > 95 && typingResults.wpm > (30 + level * 5)) {
+            setLevel(prevLevel => prevLevel + 1);
+            setStreak(prevStreak => prevStreak + 1);
         } else {
             setStreak(0);
         }
@@ -71,6 +95,12 @@ export default function PracticePage() {
         setResults(null);
         fetchPracticeText();
         // The score is not reset here, it accumulates across levels
+    };
+
+    const handleTryAgain = () => {
+        setResults(null);
+        setProgress(0);
+        // We don't need to fetch new text, just reset the progress
     };
 
     const handleProgressUpdate = (currentProgress: number, exactMatch: boolean) => {
@@ -104,7 +134,7 @@ export default function PracticePage() {
                 />
             ) : (
                 <>
-                    <ResultsDisplay results={results} />
+                    <ResultsDisplay results={results} onTryAgain={handleTryAgain} />
                     <button 
                         onClick={handleNextLevel}
                         className="mt-4 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
