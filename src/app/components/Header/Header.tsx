@@ -13,8 +13,8 @@ const Header = () => {
 
     useEffect(() => {
         const checkSession = async () => {
-            const { data: { session } } = await supabase.auth.getSession();
-            setIsSignedIn(!!session);
+            const { data: { user } } = await supabase.auth.getUser();
+            setIsSignedIn(!!user);
         };
 
         const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {

@@ -7,9 +7,9 @@ import Matches from "@/app/components/Matches";
 
 export default async function ProfilePage() {
     const supabase = createClient();
-    const { data: { session } } = await supabase.auth.getSession();
+    const { data: { user } } = await supabase.auth.getUser();
 
-    if (!session) {
+    if (!user) {
         return <div>Please sign in to view your profile.</div>;
     }
 
@@ -46,7 +46,7 @@ export default async function ProfilePage() {
                         />
                     </div>
                     <h1 className="text-3xl font-bold">Welcome back {firstName}</h1>
-                    <p className="text-gray-600 mt-2">{session.user.email}</p>
+                    <p className="text-gray-600 mt-2">{user.email}</p>
                 </div>
 
                 <StatSection bestWPM={120} averageAccuracy={98} matchesPlayed={100} />
