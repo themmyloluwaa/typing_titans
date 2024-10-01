@@ -6,10 +6,10 @@ import LeaderBoard from '../LeaderBoard/LeaderBoard';
 const TypingTitans = () => {
 
     return (
-        <div className="min-h-screen flex flex-col items-center justify-center p-4">
-            <div className="w-full max-w-3xl space-y-6">
+        <div className="min-h-screen flex flex-col items-center justify-center">
+            <div className="w-full space-y-6">
                 <Header />
-                <div className="">
+                <div className="p-4">
                     <div className="p-6 flex flex-col items-center space-y-4">
                         <Image
                             src="titan_bird.svg"

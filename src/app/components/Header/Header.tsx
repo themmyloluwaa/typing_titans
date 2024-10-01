@@ -31,7 +31,9 @@ const Header = () => {
     return (
         <header className="p-4 w-full border-b border-gray-200">
             <div className="flex justify-between items-center">
-                <h1 className="text-2xl font-bold">Typing Titans</h1>
+                <Link href="/" className="text-2xl font-bold hover:text-gray-700 transition duration-300">
+                    Typing Titans
+                </Link>
                 {isSignedIn && (
                     <>
                         <nav className="hidden md:block">
