@@ -4,7 +4,16 @@ import Header from '@/app/components/Header';
 import LeaderBoard from '../LeaderBoard/LeaderBoard';
 
 const TypingTitans = () => {
+    // Mock data for the leaderboard
+    const leaderboardData = [
+        { rank: 1, username: 'SpeedDemon', wpm: 150, accuracy: 99.5, avatar: "https://images.pexels.com/photos/733872/pexels-photo-733872.jpeg?cs=srgb&dl=pexels-olly-733872.jpg&fm=jpg", countryCode: "US", matchesPlayed: 120 },
+        { rank: 2, username: 'KeyboardWarrior', wpm: 145, accuracy: 98.7, avatar: "https://images.pexels.com/photos/733872/pexels-photo-733872.jpeg?cs=srgb&dl=pexels-olly-733872.jpg&fm=jpg", countryCode: "CA", matchesPlayed: 115 },
+        { rank: 3, username: 'TypingNinja', wpm: 140, accuracy: 99.2, avatar: "https://images.pexels.com/photos/733872/pexels-photo-733872.jpeg?cs=srgb&dl=pexels-olly-733872.jpg&fm=jpg", countryCode: "JP", matchesPlayed: 110 },
+        { rank: 4, username: 'WordWizard', wpm: 138, accuracy: 97.8, avatar: "https://images.pexels.com/photos/733872/pexels-photo-733872.jpeg?cs=srgb&dl=pexels-olly-733872.jpg&fm=jpg", countryCode: "GB", matchesPlayed: 105 },
+        { rank: 5, username: 'LightningFingers', wpm: 135, accuracy: 98.5, avatar: "https://images.pexels.com/photos/733872/pexels-photo-733872.jpeg?cs=srgb&dl=pexels-olly-733872.jpg&fm=jpg", countryCode: "AU", matchesPlayed: 100 },
+    ];
 
+  
     return (
         <div className="min-h-screen flex flex-col items-center justify-center">
             <div className="w-full space-y-6">
@@ -27,7 +36,7 @@ const TypingTitans = () => {
                         </button>
                     </div>
                 </div>
-                <LeaderBoard />
+                <LeaderBoard leaderboardData={leaderboardData} />
             </div>
         </div>
     );
