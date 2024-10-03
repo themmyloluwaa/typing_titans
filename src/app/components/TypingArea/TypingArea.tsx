@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 
 interface TypingAreaProps {
     text: string;
@@ -22,7 +22,7 @@ const TypingArea: React.FC<TypingAreaProps> = ({ text, onComplete, onProgressUpd
         }
     }, []);
 
-    const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const handleInputChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
         const value = e.target.value;
         setInput(value);
 
@@ -39,7 +39,7 @@ const TypingArea: React.FC<TypingAreaProps> = ({ text, onComplete, onProgressUpd
         if (value === text) {
             setEndTime(Date.now());
         }
-    };
+    }, [text, startTime, onProgressUpdate]);
 
     useEffect(() => {
         if (endTime && startTime) {
@@ -60,10 +60,24 @@ const TypingArea: React.FC<TypingAreaProps> = ({ text, onComplete, onProgressUpd
         return Math.round((correct / original.length) * 100);
     };
 
+    const renderHighlightedText = useCallback(() => {
+        return text.split('').map((char, index) => {
+            let color = 'text-gray-700';
+            if (index < input.length) {
+                color = input[index] === char ? 'text-green-500' : 'text-red-500';
+            }
+            return (
+                <span key={index} className={color}>
+                    {char}
+                </span>
+            );
+        });
+    }, [text, input]);
+
     return (
         <div className="max-w-2xl mx-auto">
             <div className="mb-4 p-4 bg-gray-100 rounded">
-                <p className="text-lg">{text}</p>
+                <p className="text-lg">{renderHighlightedText()}</p>
             </div>
             <textarea
                 ref={inputRef}
