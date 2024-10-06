@@ -1,4 +1,4 @@
-'use client'
+    'use client'
 
 import { useState, useEffect, useRef } from 'react';
 import { createClient } from "@/utils/supabase/client";
@@ -6,11 +6,22 @@ import TypingArea from "@/app/components/TypingArea";
 import ResultsDisplay from "@/app/components/ResultsDisplay";
 import { User } from '@supabase/supabase-js';
 import CarProgress from "@/app/components/CarProgress";
+import { savePracticeSession } from './action';
 
-export default function PracticePage() {
+interface PracticeText {
+  id: number;
+  text: string;
+  difficultyLevel: number;
+}
+
+interface PracticeProps {
+  practiceTexts: PracticeText[];
+}
+
+export default function Practice({ practiceTexts }: PracticeProps) {
     const [user, setUser] = useState<User | null>(null);
     const [isLoading, setIsLoading] = useState(true);
-    const [practiceText, setPracticeText] = useState("");
+    const [practiceText, setPracticeText] = useState<PracticeText | null>(null);
     const [results, setResults] = useState(null);
     const [level, setLevel] = useState(1);
     const [score, setScore] = useState(0);
@@ -59,24 +70,46 @@ export default function PracticePage() {
     }, [level]);
 
     const fetchPracticeText = () => {
-        // Replace this with actual API call that considers the current level
-        const texts = [
-            "The quick brown fox jumps over the lazy dog.",
-            "A journey of a thousand miles begins with a single step.",
-            "To be or not to be, that is the question.",
-            "All that glitters is not gold.",
-            "Where there's a will, there's a way."
-        ];
-        const text = texts[Math.min(level - 1, texts.length - 1)];
-        // Increase difficulty by adding more words based on the level
-        const repeatedText = (text + ' ').repeat(level).trim();
-        setPracticeText(repeatedText);
+        const availableTexts = practiceTexts.filter(text => text.difficultyLevel === level);
+        if (availableTexts.length > 0) {
+            const randomIndex = Math.floor(Math.random() * availableTexts.length);
+            setPracticeText(availableTexts[randomIndex]);
+        } else {
+            // If no text available for the current level, use the highest available level
+            const highestLevel = Math.max(...practiceTexts.map(text => text.difficultyLevel));
+            const highestLevelTexts = practiceTexts.filter(text => text.difficultyLevel === highestLevel);
+            const randomIndex = Math.floor(Math.random() * highestLevelTexts.length);
+            setPracticeText(highestLevelTexts[randomIndex]);
+        }
         setProgress(0);
     };
 
-    const handleTypingComplete = (typingResults: any) => {
+    const handleTypingComplete = async (typingResults: any) => {
         setResults(typingResults);
         updateGameState(typingResults);
+
+        // Save results to the database
+        if (user && practiceText) {
+            try {
+                const newScore = Math.round(score + (typingResults.accuracy * typingResults.wpm));
+                const result = await savePracticeSession(
+                    user.id,
+                    level,
+                    typingResults.wpm,
+                    typingResults.accuracy,
+                    typingResults.time,
+                    newScore,
+                    practiceText.id
+                );
+                if (result.success) {
+                    console.log('Practice session saved to database');
+                } else {
+                    console.error('Error saving practice session:', result.error);
+                }
+            } catch (error) {
+                console.error('Error saving practice session:', error);
+            }
+        }
     };
 
     const updateGameState = (typingResults: any) => {
@@ -126,15 +159,15 @@ export default function PracticePage() {
                 <div>Streak: {streak}</div>
             </div>
             <CarProgress progress={progress} />
-            {!results ? (
+            {!results && practiceText ? (
                 <TypingArea 
-                    text={practiceText} 
+                    text={practiceText.text} 
                     onComplete={handleTypingComplete} 
                     onProgressUpdate={handleProgressUpdate}
                 />
             ) : (
                 <>
-                    <ResultsDisplay results={results} onTryAgain={handleTryAgain} />
+                    {results && <ResultsDisplay results={results} onTryAgain={handleTryAgain} />}
                     <button 
                         onClick={handleNextLevel}
                         className="mt-4 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"

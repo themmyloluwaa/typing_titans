@@ -9,42 +9,47 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
 }
 
 model Country {
-  code  String @id @db.VarChar(2)
-  name  String @db.VarChar(100)
-  users User[]
+  code  String    @id @db.VarChar(2)
+  name  String    @db.VarChar(100)
+  users Profile[]
+
+  @@map("countries")
 }
 
-model User {
-  id              String   @id @default(dbgenerated("auth.uid()")) @db.Uuid
-  email           String   @unique
-  username        String?  @unique
-  countryCode     String?  @map("country_code") @db.VarChar(2)
-  createdAt       DateTime @default(now()) @map("created_at")
-  lastLogin       DateTime? @map("last_login")
-  country         Country? @relation(fields: [countryCode], references: [code])
-  practiceSessions PracticeSession[]
-  userStats       UserStats?
+model Profile {
+  id               String            @id @default(dbgenerated("auth.uid()")) @db.Uuid
+  email            String            @unique
+  username         String?           @unique
+  name             String?
+  avatar           String?           @map("avatar_url")
+  countryCode      String?           @map("country_code") @db.VarChar(2)
+  createdAt        DateTime          @default(now()) @map("created_at")
+  lastLogin        DateTime?         @map("last_login")
+  country          Country?          @relation(fields: [countryCode], references: [code])
+  practiceSessions PracticeSession[] @relation("ProfileToPracticeSessions")
+  userStats        UserStats?        @relation("ProfileToUserStats")
 
-  @@map("users")
+  @@map("profiles")
 }
 
 model PracticeSession {
-  id             Int      @id @default(autoincrement())
-  userId         String   @map("user_id") @db.Uuid
+  id             Int          @id @default(autoincrement())
+  userId         String       @map("user_id") @db.Uuid
   level          Int
   wpm            Int
-  accuracy       Decimal  @db.Decimal(5,2)
-  timeTaken      Decimal  @map("time_taken") @db.Decimal(8,2)
+  accuracy       Decimal      @db.Decimal(5, 2)
+  timeTaken      Decimal      @map("time_taken") @db.Decimal(8, 2)
   score          Int
-  textPracticed  String   @map("text_practiced")
-  createdAt      DateTime @default(now()) @map("created_at")
-  user           User     @relation(fields: [userId], references: [id])
+  practiceTextId Int          @map("practice_text_id")
+  practiceText   PracticeText @relation(fields: [practiceTextId], references: [id])
+  createdAt      DateTime     @default(now()) @map("created_at")
+  user           Profile      @relation("ProfileToPracticeSessions", fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
   @@map("practice_sessions")
 }
@@ -53,20 +58,21 @@ model UserStats {
   userId            String   @id @map("user_id") @db.Uuid
   highestLevel      Int      @default(1) @map("highest_level")
   totalScore        BigInt   @default(0) @map("total_score")
-  averageWpm        Decimal  @default(0) @map("average_wpm") @db.Decimal(6,2)
-  averageAccuracy   Decimal  @default(0) @map("average_accuracy") @db.Decimal(5,2)
-  totalPracticeTime Decimal  @default(0) @map("total_practice_time") @db.Decimal(10,2)
+  averageWpm        Decimal  @default(0) @map("average_wpm") @db.Decimal(6, 2)
+  averageAccuracy   Decimal  @default(0) @map("average_accuracy") @db.Decimal(5, 2)
+  totalPracticeTime Decimal  @default(0) @map("total_practice_time") @db.Decimal(10, 2)
   lastUpdated       DateTime @default(now()) @map("last_updated")
-  user              User     @relation(fields: [userId], references: [id])
+  user              Profile  @relation("ProfileToUserStats", fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
   @@map("user_stats")
 }
 
 model PracticeText {
-  id              Int      @id @default(autoincrement())
+  id              Int               @id @default(autoincrement())
   text            String
-  difficultyLevel Int      @map("difficulty_level")
-  createdAt       DateTime @default(now()) @map("created_at")
+  difficultyLevel Int               @map("difficulty_level")
+  createdAt       DateTime          @default(now()) @map("created_at")
+  PracticeSession PracticeSession[]
 
   @@map("practice_texts")
 }
